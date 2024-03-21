@@ -18,6 +18,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "App.h"
+#include "ShaderProgram.h"
 
 extern App app;
 
@@ -178,7 +179,7 @@ bool App::init()
 {
     try {
         // all initialization code
-        //...
+
 
         // some init
         // if (not_success)
@@ -220,6 +221,9 @@ bool App::init()
             glfwSetCursorPosCallback(window, cursor_position_callback_tr);
             glfwSetScrollCallback(window, scroll_callback_tr);
             glfwSwapInterval(vsyncEnabled ? 1 : 0);
+
+            
+            ShaderProgram my_shader = ShaderProgram("resources/shaders/basic.vert", "resources/shaders/basic.frag");
         }
     }
     catch (std::exception const& e) {
