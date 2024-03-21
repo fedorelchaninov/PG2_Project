@@ -46,33 +46,33 @@ inline Mesh::Mesh(GLenum primitive_type, std::vector<Vertex>& vertices, std::vec
 inline void Mesh::Draw(ShaderProgram& shader) {
     shader.activate();
 
-    // Установка юниформов
-    // Например, если у вас есть юниформ для диффузного цвета в шейдере
+    // Setting uniforms
+    // For example, if you have a uniform for diffuse color in the shader
     shader.setUniform("diffuseColor", diffuse_color);
 
-    // Установка текстуры, если она есть
+    // Setting the texture if it exists
     if (texture_id > 0) {
-        glActiveTexture(GL_TEXTURE0); // Активируем текстурный юнит 0
-        glBindTexture(GL_TEXTURE_2D, texture_id); // Привязываем текстуру
-        shader.setUniform("myTexture", 0); // Указываем шейдеру, что myTexture находится в текстурном юните 0
+        glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
+        glBindTexture(GL_TEXTURE_2D, texture_id); // Bind the texture
+        shader.setUniform("myTexture", 0); // Tell the shader that myTexture is in texture unit 0
     }
 
-    // Привязка VAO и отрисовка меша
+    // Binding VAO and drawing the mesh
     glBindVertexArray(VAO);
 
-    // Если есть индексы, используем отрисовку элементов
+    // If there are indices, we use element drawing
     if (!indices.empty()) {
         glDrawElements(primitive_type, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
     }
     else {
-        // Если индексы не заданы, используем прямую отрисовку вершин
+        // If no indices are provided, use direct vertex drawing
         glDrawArrays(primitive_type, 0, static_cast<GLsizei>(vertices.size()));
     }
 
-    // Отвязываем VAO для избежания случайных изменений
+    // Unbinding the VAO to avoid accidental changes
     glBindVertexArray(0);
 
-    // Сбрасываем привязку текстуры, если она была установлена
+    // Resetting texture binding if it was set
     if (texture_id > 0) {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
@@ -84,7 +84,7 @@ void Mesh::clear(void) {
     texture_id = 0;
     primitive_type = GL_POINT;
 
-    // Удаление буферов, если они были созданы
+    // Deleting buffers if they were created
     if (VBO != 0) {
         glDeleteBuffers(1, &VBO);
         VBO = 0;
@@ -95,10 +95,11 @@ void Mesh::clear(void) {
         EBO = 0;
     }
 
-    // Удаление VAO, если он был создан
+    // Deleting VAO if it was created
     if (VAO != 0) {
         glDeleteVertexArrays(1, &VAO);
         VAO = 0;
     }
 }
+
 

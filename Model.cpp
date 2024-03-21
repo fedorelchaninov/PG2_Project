@@ -12,12 +12,12 @@
     // TODO: call LoadOBJFile, LoadMTLFile, process data, create mesh and set its properties 
 
 inline Model::Model(const std::filesystem::path& filename) {
-    // Проверка, существует ли указанный файл
+    // Checking if the specified file exists
     if (!std::filesystem::exists(filename)) {
         throw std::runtime_error("Model file does not exist: " + filename.string());
     }
 
-    // Загрузка модели
+    // Loading model
     LoadOBJFile(filename);
 }
 
