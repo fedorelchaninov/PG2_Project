@@ -1,7 +1,16 @@
 #pragma once
 
+#include "Model.h"
+#include "ShaderProgram.h"
+#include "Mesh.h"
+
+#include <unordered_map>
+
+
 class App {
 public:
+    void init_assets(void);
+
     void scroll_callback(double xoffset, double yoffset);
     void key_callback(int key, int scancode, int action, int mods);
     void error_callback(int error, const char* description);
@@ -19,5 +28,8 @@ public:
     ~App();
 private:
     GLFWwindow* window = nullptr;
+
+protected:
+    std::unordered_map<std::string, Model> scene;
 };
 

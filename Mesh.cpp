@@ -2,7 +2,9 @@
 
 // indirect (indexed) draw 
 
-inline Mesh::Mesh(GLenum primitive_type, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint texture_id) :
+
+
+Mesh::Mesh(GLenum primitive_type, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint texture_id) :
     primitive_type(primitive_type),
     vertices(vertices),
     indices(indices),
@@ -43,12 +45,13 @@ inline Mesh::Mesh(GLenum primitive_type, std::vector<Vertex>& vertices, std::vec
 }
 
 
-inline void Mesh::Draw(ShaderProgram& shader) {
+void Mesh::Draw(ShaderProgram& shader) const {
     shader.activate();
 
     // Setting uniforms
     // For example, if you have a uniform for diffuse color in the shader
-    shader.setUniform("diffuseColor", diffuse_color);
+    
+    //shader.setUniform("diffuseColor", diffuse_color);
 
     // Setting the texture if it exists
     if (texture_id > 0) {

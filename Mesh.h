@@ -1,3 +1,5 @@
+#pragma once
+
 #include <glm/glm.hpp> 
 #include <glm/ext.hpp>
 #include <string>
@@ -8,6 +10,7 @@
 
 #include "ShaderProgram.h"
 #include "Vertex.h"
+#include "OBJLoader.h" 
 
 class Mesh {
 public:
@@ -22,11 +25,16 @@ public:
     glm::vec4 diffuse_color{1.0f}; //white, non-transparent 
     
     // indirect (indexed) draw 
-	Mesh(GLenum primitive_type, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint texture_id);;
+	Mesh(GLenum primitive_type, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint texture_id);
+    Mesh() = default;
 
-    void Draw(ShaderProgram& shader);
+    void Draw(ShaderProgram& shader) const;
 
     void clear(void);
+
+    void setTexture(GLuint textureId) {
+        this->texture_id = textureId;
+    }
 
 private:
     // OpenGL buffer IDs

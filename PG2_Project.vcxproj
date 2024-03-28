@@ -143,6 +143,7 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="OBJloader.cpp" />
     <ClCompile Include="PG2_Project.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
   </ItemGroup>
@@ -150,6 +151,7 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="OBJloader.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>

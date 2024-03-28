@@ -18,11 +18,19 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "App.h"
-#include "ShaderProgram.h"
 
 extern App app;
 
 bool vsyncEnabled = false;
+ShaderProgram my_shader;
+
+void App::init_assets(void) {
+    my_shader = ShaderProgram("resources/shaders/basic.vert", "resources/shaders/basic.frag");
+
+    Model my_model("obj/plane_tri_vnt.obj");
+
+    scene.insert({ "my_first_object", my_model });
+}
 
 void App::scroll_callback(double xoffset, double yoffset) {
     if (yoffset > 0.0) {
@@ -222,8 +230,8 @@ bool App::init()
             glfwSetScrollCallback(window, scroll_callback_tr);
             glfwSwapInterval(vsyncEnabled ? 1 : 0);
 
-            
-            ShaderProgram my_shader = ShaderProgram("resources/shaders/basic.vert", "resources/shaders/basic.frag");
+           
+            init_assets();
         }
     }
     catch (std::exception const& e) {
@@ -236,69 +244,48 @@ bool App::init()
 
 int App::run(void)
 {
+    glm::vec4 my_color{ 1.0f, 0.0f, 0.0f, 1.0f };
+
     try {
-        // app code
-        //...
-        while (!glfwWindowShouldClose(window))
-        {
-            auto start = std::chrono::steady_clock::now();
+        double lastTime = glfwGetTime();
+        int frameCount = 0;
 
-            // Creating variables for FPS calculation
-            auto startTime = std::chrono::steady_clock::now();
-            std::chrono::steady_clock::time_point lastTime = startTime;
-            int frameCount = 0;
+        while (!glfwWindowShouldClose(window)) {
 
-            // clear canvas
-            while (!glfwWindowShouldClose(window)) {
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-
-                // poll events, call callbacks, flip back<->front buffer
-                glfwPollEvents();
-                glfwSwapBuffers(window);
-                // FPS calculation
-                frameCount++;
-                std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
-                std::chrono::duration<double> elapsedTime = currentTime - lastTime;
-                if (elapsedTime.count() >= 1.0) {
-                    double fps = static_cast<double>(frameCount) / elapsedTime.count();
-                    std::cout << "FPS: " << fps << std::endl;
-                    frameCount = 0;
-                    lastTime = currentTime;
-
-                }
-            }
-            auto end = std::chrono::steady_clock::now();
-
-            std::chrono::duration<double> elapsed_seconds = end - start;
-            std::cout << "elapsed time: " << elapsed_seconds.count() << "sec" << std::endl;
-            
-
-            // ... do_something();
-            // 
-            // if (condition)
-            //   glfwSetWindowShouldClose(window, GLFW_TRUE);
-            // 
-
-            // Clear OpenGL canvas, both color buffer and Z-buffer
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // Swap front and back buffers
-            glfwSwapBuffers(window);
+            double currentTime = glfwGetTime();
+            frameCount++;
 
-            // Poll for and process events
+            my_shader.activate();
+            my_shader.setUniform("color", my_color);
+
+            if (currentTime - lastTime >= 1.0) {
+                std::cout << "FPS: " << frameCount << std::endl;
+                frameCount = 0;
+                lastTime += 1.0;
+            }
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            for (auto model : scene) {
+                model.second.Draw(my_shader);
+            }
+
+            glfwSwapBuffers(window);
             glfwPollEvents();
         }
     }
     catch (std::exception const& e) {
-        std::cerr << "App failed : " << e.what() << std::endl;
+        std::cerr << "App failed: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 
-    std::cout << "Finished OK...\n";
+    std::cout << "Finished OK.\n";
     return EXIT_SUCCESS;
 }
+
+
 
 App::~App()
 {
