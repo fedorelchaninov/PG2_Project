@@ -74,6 +74,7 @@ void ShaderProgram::setUniform(const std::string& name, const glm::vec4 val) {
 		std::cerr << "no uniform with name:" << name << '\n';
 		return;
 	}
+
 	glUniform4fv(loc, 1, glm::value_ptr(val));
 }
 

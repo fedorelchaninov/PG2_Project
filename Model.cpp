@@ -37,68 +37,85 @@ void Model::Draw(ShaderProgram& shader) {
 void Model::LoadOBJFile(const std::filesystem::path& filename) {
     std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
-    std::vector<glm::vec3> tempPositions;
-    std::vector<glm::vec2> tempTexCoords;
-    std::vector<glm::vec3> tempNormals;
 
-    std::ifstream fileStream(filename);
-    std::string line;
-    if (!fileStream.is_open()) {
-        throw std::runtime_error("Failed to open the file: " + filename.string());
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file: " + filename.string());
     }
 
-    while (getline(fileStream, line)) {
-        std::istringstream lineStream(line);
-        std::string type;
-        lineStream >> type;
+    std::string line;
+    std::vector<glm::vec3> tempPositions;
+    std::vector<glm::vec3> tempNormals;
+    std::vector<glm::vec2> tempTexCoords;
 
-        if (type == "v") {
+    while (getline(file, line)) {
+        std::stringstream ss(line);
+        std::string prefix;
+        ss >> prefix;
+
+        if (prefix == "v") {
             glm::vec3 position;
-            lineStream >> position.x >> position.y >> position.z;
+            ss >> position.x >> position.y >> position.z;
             tempPositions.push_back(position);
         }
-        else if (type == "vt") {
-            glm::vec2 texCoord;
-            lineStream >> texCoord.x >> texCoord.y;
-            tempTexCoords.push_back(texCoord);
-        }
-        else if (type == "vn") {
+        else if (prefix == "vn") {
             glm::vec3 normal;
-            lineStream >> normal.x >> normal.y >> normal.z;
+            ss >> normal.x >> normal.y >> normal.z;
             tempNormals.push_back(normal);
         }
-        else if (type == "f") {
-            unsigned int vIndex[3], uvIndex[3], nIndex[3];
-            char slash;
+        else if (prefix == "vt") {
+            glm::vec2 texCoord;
+            ss >> texCoord.x >> texCoord.y;
+            tempTexCoords.push_back(texCoord);
+        }
+        else if (prefix == "f") {
+            std::vector<std::string> faceElements(3);
+            ss >> faceElements[0] >> faceElements[1] >> faceElements[2];
 
-            // »змените этот шаблон в соответствии с вашим форматом OBJ файла
-            lineStream >> vIndex[0] >> slash >> uvIndex[0] >> slash >> nIndex[0]
-                >> vIndex[1] >> slash >> uvIndex[1] >> slash >> nIndex[1]
-                >> vIndex[2] >> slash >> uvIndex[2] >> slash >> nIndex[2];
+            for (auto& elem : faceElements) {
+                std::replace(elem.begin(), elem.end(), '/', ' ');
+                std::istringstream elemStream(elem);
+                unsigned int vIndex, uvIndex = 0, nIndex;
+                elemStream >> vIndex;
 
-            // ƒобавление индексов вершин, текстурных координат и нормалей
-            for (int i = 0; i < 3; i++) {
-                indices.push_back(vIndex[i] - 1); // OBJ индексы начинаютс€ с 1, в C++ с 0
+                if (elemStream.peek() == ' ') {
+                    elemStream.ignore();
+                    if (elemStream.peek() != ' ') {
+                        elemStream >> uvIndex;
+                    }
+                }
+
+                elemStream.ignore();
+                elemStream >> nIndex;
 
                 Vertex vertex;
-                vertex.Position = tempPositions[vIndex[i] - 1];
-                if (uvIndex[i] <= tempTexCoords.size()) { // ѕроверка на наличие текстурных координат
-                    vertex.TexCoords = tempTexCoords[uvIndex[i] - 1];
+                vertex.Position = tempPositions[vIndex - 1];
+                if (uvIndex > 0 && uvIndex <= tempTexCoords.size()) {
+                    vertex.TexCoords = tempTexCoords[uvIndex - 1];
                 }
-                if (nIndex[i] <= tempNormals.size()) { // ѕроверка на наличие нормалей
-                    vertex.Normal = tempNormals[nIndex[i] - 1];
-                }
+                vertex.Normal = tempNormals[nIndex - 1];
                 vertices.push_back(vertex);
+                indices.push_back(vertices.size() - 1);
             }
         }
     }
 
-    // —оздание меша
-    GLenum primitiveType = GL_TRIANGLES; // »спользуемый тип примитива
-    GLuint textureId = 0; // ѕример: textureId должен быть загружен или определен другим способом
+    file.close();
+
+    std::cout << "Model Loaded: " << filename << std::endl;
+    std::cout << "Vertices: " << vertices.size() << std::endl;
+    std::cout << "Indices: " << indices.size() << std::endl;
+
+    GLenum primitiveType = GL_TRIANGLES;
+    GLuint textureId = 0; // ”становлено в 0, так как нет текстур
     Mesh mesh(primitiveType, vertices, indices, textureId);
-    meshes.push_back(mesh);
+    this->meshes.push_back(mesh);
 }
+
+
+
+
+
 
 
 

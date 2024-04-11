@@ -1,9 +1,9 @@
 #version 430 core
+out vec4 FragColor; // Цвет фрагмента, который будет выводиться на экран
 
-in vec3 color; // input from vertex stage of graphics pipeline, automatically interpolated
-out vec4 FragColor; // output color of current fragment: MUST be written
+uniform vec4 uColor; // Униформа для цвета модели
 
 void main()
 {
-    FragColor = vec4(color, 1.0f); // copy RGB color, add Alpha=1.0 (not transparent)
+    FragColor = uColor; // Установка цвета каждого фрагмента в униформу uColor
 }

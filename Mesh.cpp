@@ -48,11 +48,6 @@ Mesh::Mesh(GLenum primitive_type, std::vector<Vertex>& vertices, std::vector<GLu
 void Mesh::Draw(ShaderProgram& shader) const {
     shader.activate();
 
-    // Setting uniforms
-    // For example, if you have a uniform for diffuse color in the shader
-    
-    //shader.setUniform("diffuseColor", diffuse_color);
-
     // Setting the texture if it exists
     if (texture_id > 0) {
         glActiveTexture(GL_TEXTURE0); // Activate texture unit 0

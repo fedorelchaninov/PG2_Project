@@ -27,9 +27,9 @@ ShaderProgram my_shader;
 void App::init_assets(void) {
     my_shader = ShaderProgram("resources/shaders/basic.vert", "resources/shaders/basic.frag");
 
-    Model my_model("obj/plane_tri_vnt.obj");
+    Model my_model("obj/bunny_tri_vn.obj");
 
-    scene.insert({ "my_first_object", my_model });
+    scene.insert({ "bunny", my_model });
 }
 
 void App::scroll_callback(double xoffset, double yoffset) {
@@ -232,6 +232,7 @@ bool App::init()
 
            
             init_assets();
+
         }
     }
     catch (std::exception const& e) {
@@ -242,38 +243,62 @@ bool App::init()
     return true;
 }
 
-int App::run(void)
-{
-    glm::vec4 my_color{ 1.0f, 0.0f, 0.0f, 1.0f };
+
+
+int App::run(void) {
+    glEnable(GL_DEPTH_TEST);
+
+    // Определение цвета модели
+    glm::vec4 my_color{ 1.0f, 0.5f, 0.2f, 1.0f }; // Оранжевый цвет
+
+    // Определение матриц трансформации
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)600, 0.1f, 100.0f);
+    glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 50.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     try {
         double lastTime = glfwGetTime();
         int frameCount = 0;
 
+        // Основной цикл рендера
         while (!glfwWindowShouldClose(window)) {
-
+            // Очистка экрана
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            // Активация шейдера
+            my_shader.activate();
+
+            // Расчет текущего угла вращения
+            float angle = (float)glfwGetTime(); // Угол вращения зависит от времени
+
+            // Определение матрицы модели с учетом вращения и переворота на 90 градусов
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Переворот на 90 градусов влево вокруг оси X
+            model = glm::rotate(model, glm::radians(angle * 50), glm::vec3(0.0f, 0.0f, 1.0f)); // Вращение вокруг оси Y
+            model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f)); // Масштабирование
+
+            // Установка uniform переменных
+            my_shader.setUniform("uP_m", projection);
+            my_shader.setUniform("uV_m", view);
+            my_shader.setUniform("uM_m", model);
+            my_shader.setUniform("uColor", my_color);
+
+            // Отрисовка всех моделей в сцене
+            for (auto& [key, model] : scene) {
+                model.Draw(my_shader);
+            }
+
+            // Обновление экрана и обработка событий
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+
+            // Подсчет FPS
             double currentTime = glfwGetTime();
             frameCount++;
-
-            my_shader.activate();
-            my_shader.setUniform("color", my_color);
-
             if (currentTime - lastTime >= 1.0) {
                 std::cout << "FPS: " << frameCount << std::endl;
                 frameCount = 0;
                 lastTime += 1.0;
             }
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            for (auto model : scene) {
-                model.second.Draw(my_shader);
-            }
-
-            glfwSwapBuffers(window);
-            glfwPollEvents();
         }
     }
     catch (std::exception const& e) {
@@ -284,6 +309,12 @@ int App::run(void)
     std::cout << "Finished OK.\n";
     return EXIT_SUCCESS;
 }
+
+
+
+
+
+
 
 
 
