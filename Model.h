@@ -25,6 +25,7 @@ public:
 
     Model(const std::filesystem::path& filename);
     Model(Mesh& mesh, ShaderProgram& shader);
+    Model() = default;
 
     void Draw(ShaderProgram& shader);
 

@@ -15,17 +15,17 @@ glm::vec3 Camera::ProcessInput(GLFWwindow* window, GLfloat deltaTime)
     glm::vec3 direction{ 0 };
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        direction += Front;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         direction -= Front;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        direction += Front;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        direction -= Right;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         direction += Right;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        direction -= Right;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        direction += WorldUp; // Assuming SPACE for upward movement
+        direction -= WorldUp; // Assuming SPACE for upward movement
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        direction -= WorldUp; // Assuming CTRL for downward movement
+        direction += WorldUp; // Assuming CTRL for downward movement
 
     if (glm::length(direction) > 0) {
         Position += glm::normalize(direction) * MovementSpeed * deltaTime;

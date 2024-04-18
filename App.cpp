@@ -21,6 +21,7 @@
 
 bool vsyncEnabled = false;
 ShaderProgram my_shader;
+ShaderProgram sun_shader;
 
 void App::update_projection_matrix(void)
 {
@@ -37,13 +38,35 @@ void App::update_projection_matrix(void)
     );
 }
 
+#include <vector>
+#include <cmath>
+
+std::vector<float> createCircleVertices(float centerX, float centerY, float radius, int numSegments) {
+    std::vector<float> vertices;
+    for (int i = 0; i <= numSegments; ++i) {
+        float theta = 2.0f * 3.1415926f * float(i) / float(numSegments); // текущий угол
+        float x = radius * cosf(theta); // рассчитываем x
+        float y = radius * sinf(theta); // рассчитываем y
+        vertices.push_back(x + centerX);
+        vertices.push_back(y + centerY);
+    }
+    return vertices;
+}
+
 
 void App::init_assets(void) {
     my_shader = ShaderProgram("resources/shaders/basic.vert", "resources/shaders/basic.frag");
 
     Model my_model("obj/bunny_tri_vn.obj");
+    Model my_model2("obj/teapot_tri_vnt.obj");
 
     scene.insert({ "bunny", my_model });
+    scene.insert({ "teapot", my_model2 });
+
+
+    // Шейдер для солнца
+    sun_shader = ShaderProgram("resources/shaders/sun.vert", "resources/shaders/sun.frag");
+
 }
 
 void App::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -250,6 +273,8 @@ bool App::init()
 
 int App::run(void) {
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     update_projection_matrix();
     glViewport(0, 0, width, height);
@@ -259,7 +284,7 @@ int App::run(void) {
 
     try {
         double lastTime = glfwGetTime();
-        camera.Position = glm::vec3(0, 0, 1000);
+        camera.Position = glm::vec3(0, 15, 50);
         int frameCount = 0;
 
         // render
@@ -268,31 +293,51 @@ int App::run(void) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             my_shader.activate();
 
+
+
             double currentTime = glfwGetTime();
             double delta_t = lastTime - currentTime; // Correct delta time calculation
-
             camera.ProcessInput(window, delta_t); // Process keyboard and mouse input
-
             glm::mat4 view_matrix = camera.GetViewMatrix(); // Use camera's view matrix
-
             // Rotation angle based on time
             float angle = static_cast<float>(currentTime); // Rotation angle depends on time
 
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            model = glm::rotate(model, glm::radians(angle * 50), glm::vec3(0.0f, 0.0f, 1.0f));
-            model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
+            my_shader.setUniform("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            my_shader.setUniform("lightPos", glm::vec3(0.0f, 20.0f, 20.0f));
             // Set shader uniforms
             my_shader.setUniform("uP_m", projection_matrix); // Use dynamic projection matrix
             my_shader.setUniform("uV_m", view_matrix); // Use dynamic view matrix
-            my_shader.setUniform("uM_m", model);
-            my_shader.setUniform("uColor", my_color);
+
+
+            glm::mat4 modelBunny = glm::mat4(1.0f);
+            modelBunny = glm::translate(modelBunny, glm::vec3(0.0f, 0.0f, 0.0f));
+            modelBunny = glm::rotate(modelBunny, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            modelBunny = glm::rotate(modelBunny, glm::radians(angle * 50), glm::vec3(0.0f, 0.0f, 1.0f));
+            modelBunny = glm::scale(modelBunny, glm::vec3(0.5f, 0.5f, 0.5f));
+            my_shader.setUniform("uM_m", modelBunny);
+            my_shader.setUniform("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
+            my_shader.setUniform("transparency", 1.0f);  // Непрозрачный
+            scene["bunny"].Draw(my_shader);
+
+            glm::mat4 modelTeapot = glm::mat4(1.0f);
+            modelTeapot = glm::translate(modelTeapot, glm::vec3(0.0f, -8.0f, 0.0f));
+            modelTeapot = glm::rotate(modelTeapot, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            modelTeapot = glm::rotate(modelTeapot, glm::radians(angle * 50), glm::vec3(0.0f, 1.0f, 0.0f));
+            modelTeapot = glm::scale(modelTeapot, glm::vec3(10.5f, 10.5f, 10.5f));
+            my_shader.setUniform("uM_m", modelTeapot);
+            my_shader.setUniform("objectColor", glm::vec3(1.0f, 0.8f, 0.6f));
+            my_shader.setUniform("transparency", 0.5f);  // Прозрачность 50%
+            scene["teapot"].Draw(my_shader);
+
+
+            
+
 
             // Draw all models in the scene
-            for (auto& [key, model] : scene) {
+            /*for (auto& [key, model] : scene) {
                 model.Draw(my_shader);
-            }
+            }*/
 
             glfwSwapBuffers(window);
             glfwPollEvents();
@@ -315,7 +360,7 @@ int App::run(void) {
     return EXIT_SUCCESS;
 }
 
-
+    
 App::~App()
 {
     // clean-up
