@@ -18,6 +18,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "App.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 bool vsyncEnabled = false;
 ShaderProgram my_shader;
@@ -63,9 +65,7 @@ void App::init_assets(void) {
     scene.insert({ "bunny", my_model });
     scene.insert({ "teapot", my_model2 });
 
-
-    // Шейдер для солнца
-    sun_shader = ShaderProgram("resources/shaders/sun.vert", "resources/shaders/sun.frag");
+    
 
 }
 
@@ -281,6 +281,10 @@ int App::run(void) {
 
     // Model color
     glm::vec4 my_color{ 1.0f, 0.5f, 0.2f, 1.0f }; // orange
+    // Light color for sky
+    glClearColor(0.7f, 0.9f, 1.0f, 1.0f);
+
+    
 
     try {
         double lastTime = glfwGetTime();
@@ -292,6 +296,8 @@ int App::run(void) {
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             my_shader.activate();
+
+
 
 
 
@@ -334,6 +340,7 @@ int App::run(void) {
             
 
 
+            
             // Draw all models in the scene
             /*for (auto& [key, model] : scene) {
                 model.Draw(my_shader);

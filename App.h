@@ -10,6 +10,8 @@
 
 class App {
 public:
+    unsigned int microwaveTextureID;  // Texture ID for the microwave
+
     Camera camera;
 
     void init_assets(void);
