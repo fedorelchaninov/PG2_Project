@@ -48,33 +48,32 @@ Mesh::Mesh(GLenum primitive_type, std::vector<Vertex>& vertices, std::vector<GLu
 void Mesh::Draw(ShaderProgram& shader) const {
     shader.activate();
 
-    // Setting the texture if it exists
+    // Установка текстуры, если она есть
     if (texture_id > 0) {
-        glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
-        glBindTexture(GL_TEXTURE_2D, texture_id); // Bind the texture
-        shader.setUniform("myTexture", 0); // Tell the shader that myTexture is in texture unit 0
+        glActiveTexture(GL_TEXTURE0); // Активация текстурного юнита 0
+        glBindTexture(GL_TEXTURE_2D, texture_id); // Привязка текстуры
+        shader.setUniform("myTexture", 0); // Сообщаем шейдеру, что myTexture находится в текстурном юните 0
+    }
+    else {
+        glBindTexture(GL_TEXTURE_2D, 0); // Обязательно сбрасываем привязку текстуры, если текстуры нет
     }
 
-    // Binding VAO and drawing the mesh
+    // Привязка VAO и отрисовка меша
     glBindVertexArray(VAO);
-
-    // If there are indices, we use element drawing
     if (!indices.empty()) {
         glDrawElements(primitive_type, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
     }
     else {
-        // If no indices are provided, use direct vertex drawing
         glDrawArrays(primitive_type, 0, static_cast<GLsizei>(vertices.size()));
     }
-
-    // Unbinding the VAO to avoid accidental changes
     glBindVertexArray(0);
 
-    // Resetting texture binding if it was set
+    // Сброс привязки текстуры, если она была установлена
     if (texture_id > 0) {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 }
+
 
 void Mesh::clear(void) {
     vertices.clear();

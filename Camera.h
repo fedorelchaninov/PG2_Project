@@ -6,6 +6,7 @@
 #include <glm/trigonometric.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_transform.hpp>
+
 class Camera
 {
 public:
@@ -32,6 +33,8 @@ public:
     glm::vec3 ProcessInput(GLFWwindow* window, GLfloat deltaTime);
 
     void ProcessMouseMovement(GLfloat xoffset, GLfloat yoffset, GLboolean constraintPitch = GL_TRUE);
+
+    bool checkCollision(const glm::vec3& newPos);
 
 private:
     void updateCameraVectors();

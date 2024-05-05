@@ -3,6 +3,7 @@
 #include "Model.h"
 
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -24,7 +25,21 @@ Model::Model(const std::filesystem::path& filename) {
     }
 
     // Loading model
-    LoadOBJFile(filename);
+    LoadOBJFile(filename, 0);
+}
+
+Model::Model(const std::filesystem::path& filename, const std::filesystem::path& texture) {
+    // Checking if the specified file exists
+    if (!std::filesystem::exists(filename)) {
+        throw std::runtime_error("Model file does not exist: " + filename.string());
+    }
+    if (!std::filesystem::exists(texture)) {
+        throw std::runtime_error("Texture file does not exist: " + filename.string());
+    }
+
+    GLuint textureId = LoadTexture(texture);
+    // Loading model
+    LoadOBJFile(filename, textureId);
 }
 
 void Model::Draw(ShaderProgram& shader) {
@@ -34,7 +49,11 @@ void Model::Draw(ShaderProgram& shader) {
     }
 }
 
-void Model::LoadOBJFile(const std::filesystem::path& filename) {
+void Model::addMesh(const Mesh& mesh) {
+    meshes.push_back(mesh);
+}
+
+void Model::LoadOBJFile(const std::filesystem::path& filename, GLuint textureId) {
     std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
 
@@ -47,13 +66,20 @@ void Model::LoadOBJFile(const std::filesystem::path& filename) {
     std::vector<glm::vec3> tempPositions;
     std::vector<glm::vec3> tempNormals;
     std::vector<glm::vec2> tempTexCoords;
+    std::filesystem::path mtlFilePath;
 
     while (getline(file, line)) {
         std::stringstream ss(line);
         std::string prefix;
         ss >> prefix;
 
-        if (prefix == "v") {
+        if (prefix == "mtllib") {
+            std::string mtlFileName;
+            ss >> mtlFileName;
+            mtlFilePath = std::filesystem::path(directory).append("obj").append(mtlFileName);
+            LoadMTLFile(mtlFilePath);  // Загрузка MTL файла
+        }
+        else if (prefix == "v") {
             glm::vec3 position;
             ss >> position.x >> position.y >> position.z;
             tempPositions.push_back(position);
@@ -106,9 +132,7 @@ void Model::LoadOBJFile(const std::filesystem::path& filename) {
     std::cout << "Vertices: " << vertices.size() << std::endl;
     std::cout << "Indices: " << indices.size() << std::endl;
 
-    GLenum primitiveType = GL_TRIANGLES;
-    GLuint textureId = 0; // Установлено в 0, так как нет текстур
-    Mesh mesh(primitiveType, vertices, indices, textureId);
+    Mesh mesh(GL_TRIANGLES, vertices, indices, textureId);
     this->meshes.push_back(mesh);
 }
 
@@ -120,6 +144,13 @@ void Model::LoadOBJFile(const std::filesystem::path& filename) {
 
 
 void Model::LoadMTLFile(const std::filesystem::path& filename) {
+    std::cout << "Trying to open MTL file at: " << filename << std::endl;
+
+    if (!std::filesystem::exists(filename)) {
+        std::cerr << "MTL file does not exist: " << filename << std::endl;
+        return;
+    }
+    
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Failed to open MTL file: " << filename << std::endl;
@@ -149,8 +180,26 @@ void Model::LoadMTLFile(const std::filesystem::path& filename) {
         else if (key == "Ks" && currentMaterial) {
             stream >> currentMaterial->specular.r >> currentMaterial->specular.g >> currentMaterial->specular.b;
         }
-        // Обработка других ключей и свойств материала
+        else if (key == "Ns" && currentMaterial) {
+            stream >> currentMaterial->shininess;
+        }
+        else if (key == "Ni" && currentMaterial) {
+            stream >> currentMaterial->opticalDensity;
+        }
+        else if (key == "d" && currentMaterial) {
+            float transparency;
+            stream >> transparency;
+            currentMaterial->transparency = transparency;
+        }
+        else if (key == "illum" && currentMaterial) {
+            int illumModel;
+            stream >> illumModel;
+            currentMaterial->illumModel = illumModel;
+        }
+        // Handle additional keys like Ke, etc., if necessary
     }
+
+    file.close();
 }
 
 GLuint Model::LoadTexture(const std::filesystem::path& filepath) {

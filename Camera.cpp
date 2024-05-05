@@ -15,22 +15,43 @@ glm::vec3 Camera::ProcessInput(GLFWwindow* window, GLfloat deltaTime)
     glm::vec3 direction{ 0 };
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        direction -= Front;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         direction += Front;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        direction -= Front;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        direction += Right;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         direction -= Right;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        direction += Right;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        direction -= WorldUp; // Assuming SPACE for upward movement
+        direction += WorldUp; // Assuming SPACE for upward movement
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        direction += WorldUp; // Assuming CTRL for downward movement
+        direction -= WorldUp; // Assuming CTRL for downward movement
 
-    if (glm::length(direction) > 0) {
-        Position += glm::normalize(direction) * MovementSpeed * deltaTime;
+    if (glm::length(direction) != 0) {
+        glm::vec3 newPosition = Position + glm::normalize(direction) * MovementSpeed * deltaTime;
+        if (!checkCollision(newPosition)) {
+            Position = newPosition;
+        }
+        else {
+            std::cout << "Collision detected, movement blocked." << std::endl;
+        }
     }
     return direction;
+}
+
+bool Camera::checkCollision(const glm::vec3& newPos) {
+    glm::vec3 teapotPosition = glm::vec3(0.0f, -8.0f, 0.0f); // Актуальная позиция чайника
+    float teapotRadius = 10.5f; // Предположим радиус, соответствующий масштабированному размеру
+
+    float distance = glm::length(newPos - teapotPosition);
+    bool collision = distance < (teapotRadius + MovementSpeed); // Учет скорости движения для предотвращения проникновения
+
+    // Логирование для отладки
+    /*std::cout << "Checking collision: newPos (" << newPos.x << ", " << newPos.y << ", " << newPos.z
+        << ") teapotPos (" << teapotPosition.x << ", " << teapotPosition.y << ", " << teapotPosition.z
+        << ") distance: " << distance << " collision: " << (collision ? "yes" : "no") << std::endl;*/
+
+    return collision;
 }
 
 void Camera::ProcessMouseMovement(GLfloat xoffset, GLfloat yoffset, GLboolean constraintPitch)

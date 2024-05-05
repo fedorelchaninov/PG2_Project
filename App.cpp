@@ -56,19 +56,6 @@ std::vector<float> createCircleVertices(float centerX, float centerY, float radi
 }
 
 
-void App::init_assets(void) {
-    my_shader = ShaderProgram("resources/shaders/basic.vert", "resources/shaders/basic.frag");
-
-    Model my_model("obj/bunny_tri_vn.obj");
-    Model my_model2("obj/teapot_tri_vnt.obj");
-
-    scene.insert({ "bunny", my_model });
-    scene.insert({ "teapot", my_model2 });
-
-    
-
-}
-
 void App::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     if (yoffset > 0.0) {
         std::cout << "tocis nahoru...\n";
@@ -79,7 +66,7 @@ void App::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 
     // get App instance
     auto this_inst = static_cast<App*>(glfwGetWindowUserPointer(window));
-    this_inst->fov += 10 * yoffset;
+    this_inst->fov += 10.0 * yoffset;
     this_inst->fov = std::clamp(this_inst->fov, 20.0f, 170.0f); // limit FOV to reasonable values...
 
     this_inst->update_projection_matrix();
@@ -201,6 +188,7 @@ void GLAPIENTRY App::MessageCallback(GLFWwindow* window, GLenum source, GLenum t
                     ", message = '" << message << '\'' << std::endl;
 }
 
+
 App::App() : camera(glm::vec3(0.0f, 0.0f, 3.0f))
 {
     // default constructor
@@ -269,7 +257,24 @@ bool App::init()
     return true;
 }
 
+void App::init_assets(void) {
+    my_shader = ShaderProgram("resources/shaders/basic.vert", "resources/shaders/basic.frag");
 
+
+    Model my_model("obj/bunny_tri_vn.obj", "resources/textures/ground_texture.bmp");
+    Model groundModel("obj/ground.obj", "resources/textures/grass.bmp");
+    Model houseModel("obj/house.obj", "resources/textures/tiled-stones.bmp");
+    Model mocrowaveModel("obj/microwave_bi.obj", "resources/textures/microwave_col.bmp");
+
+
+    scene.insert({ "bunny", my_model });
+    scene.insert({ "ground", groundModel });
+    scene.insert({ "house", houseModel });
+    scene.insert({ "microwave", mocrowaveModel });
+
+    
+
+}
 
 int App::run(void) {
     glEnable(GL_DEPTH_TEST);
@@ -279,17 +284,14 @@ int App::run(void) {
     update_projection_matrix();
     glViewport(0, 0, width, height);
 
-    // Model color
-    glm::vec4 my_color{ 1.0f, 0.5f, 0.2f, 1.0f }; // orange
-    // Light color for sky
-    glClearColor(0.7f, 0.9f, 1.0f, 1.0f);
-
+    glClearColor(0.7f, 0.9f, 1.0f, 1.0f); // Светлый цвет неба
     
 
     try {
         double lastTime = glfwGetTime();
-        camera.Position = glm::vec3(0, 15, 50);
+        camera.Position = glm::vec3(0, 50, 100); // Устанавливаем камеру выше земли
         int frameCount = 0;
+
 
         // render
         while (!glfwWindowShouldClose(window)) {
@@ -297,49 +299,68 @@ int App::run(void) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             my_shader.activate();
 
-
-
-
-
             double currentTime = glfwGetTime();
-            double delta_t = lastTime - currentTime; // Correct delta time calculation
+            double delta_t = currentTime - lastTime; // Correct delta time calculation
             camera.ProcessInput(window, delta_t); // Process keyboard and mouse input
             glm::mat4 view_matrix = camera.GetViewMatrix(); // Use camera's view matrix
-            // Rotation angle based on time
             float angle = static_cast<float>(currentTime); // Rotation angle depends on time
+            glm::vec3 cameraFront = camera.Position + camera.Front;
 
-
-            my_shader.setUniform("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-            my_shader.setUniform("lightPos", glm::vec3(0.0f, 20.0f, 20.0f));
             // Set shader uniforms
-            my_shader.setUniform("uP_m", projection_matrix); // Use dynamic projection matrix
-            my_shader.setUniform("uV_m", view_matrix); // Use dynamic view matrix
+            my_shader.setUniform("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            glm::vec3 lightPos = camera.Position + camera.Front * 10.0f;
+            my_shader.setUniform("lightPos", lightPos);
+            my_shader.setUniform("uP_m", projection_matrix);
+            my_shader.setUniform("uV_m", view_matrix);
+           
 
-
+            // Draw Bunny
             glm::mat4 modelBunny = glm::mat4(1.0f);
             modelBunny = glm::translate(modelBunny, glm::vec3(0.0f, 0.0f, 0.0f));
             modelBunny = glm::rotate(modelBunny, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             modelBunny = glm::rotate(modelBunny, glm::radians(angle * 50), glm::vec3(0.0f, 0.0f, 1.0f));
             modelBunny = glm::scale(modelBunny, glm::vec3(0.5f, 0.5f, 0.5f));
             my_shader.setUniform("uM_m", modelBunny);
-            my_shader.setUniform("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
             my_shader.setUniform("transparency", 1.0f);  // Непрозрачный
             scene["bunny"].Draw(my_shader);
 
+            // Draw Teapot
             glm::mat4 modelTeapot = glm::mat4(1.0f);
             modelTeapot = glm::translate(modelTeapot, glm::vec3(0.0f, -8.0f, 0.0f));
             modelTeapot = glm::rotate(modelTeapot, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
             modelTeapot = glm::rotate(modelTeapot, glm::radians(angle * 50), glm::vec3(0.0f, 1.0f, 0.0f));
-            modelTeapot = glm::scale(modelTeapot, glm::vec3(10.5f, 10.5f, 10.5f));
+            modelTeapot = glm::scale(modelTeapot, glm::vec3(5.5f, 5.5f, 5.5f));
             my_shader.setUniform("uM_m", modelTeapot);
             my_shader.setUniform("objectColor", glm::vec3(1.0f, 0.8f, 0.6f));
-            my_shader.setUniform("transparency", 0.5f);  // Прозрачность 50%
+            my_shader.setUniform("transparency", 0.7f);  // Прозрачность 70%
             scene["teapot"].Draw(my_shader);
 
 
+            // Draw Ground
+            my_shader.setUniform("transparency", 1.0f); // Непрозрачный для земли
+            glm::mat4 modelGround = glm::mat4(1.0f);
+            my_shader.setUniform("uM_m", modelGround);
+            scene["ground"].Draw(my_shader);
+
+
+            // Draw House
+            glm::mat4 modelHouse = glm::mat4(1.0f); // Start with an identity matrix
+            modelHouse = glm::translate(modelHouse, glm::vec3(-330.0f, 0.0f, -400.0f));
+            modelHouse = glm::rotate(modelHouse, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
+            modelHouse = glm::scale(modelHouse, glm::vec3(5.0f, 5.0f, 5.0f)); // Scale the model up by a factor of 5
+            my_shader.setUniform("uM_m", modelHouse);
+            scene["house"].Draw(my_shader);
             
 
-
+            // Draw Microwave
+            glm::mat4 modelMicrowave = glm::mat4(1.0f); // Start with an identity matrix
+            modelMicrowave = glm::translate(modelMicrowave, glm::vec3(300.0f, 5.0f, 0.0f));
+            modelMicrowave = glm::rotate(modelMicrowave, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
+            // Rotate 90 degrees around the Z axis
+            modelMicrowave = glm::rotate(modelMicrowave, glm::radians(270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            modelMicrowave = glm::scale(modelMicrowave, glm::vec3(30.0f, 30.0f, 30.0f));
+            my_shader.setUniform("uM_m", modelMicrowave);
+            scene["microwave"].Draw(my_shader);
             
             // Draw all models in the scene
             /*for (auto& [key, model] : scene) {
