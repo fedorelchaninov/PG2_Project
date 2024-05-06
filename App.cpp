@@ -22,6 +22,8 @@
 #include "stb_image.h"
 
 bool vsyncEnabled = false;
+bool fullscreen = false;
+int windowPosX, windowPosY, windowWidth, windowHeight;
 ShaderProgram my_shader;
 
 void App::update_projection_matrix(void)
@@ -84,6 +86,22 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
             glfwSwapInterval(vsyncEnabled ? 1 : 0);
             if(vsyncEnabled) std::cout << "V-Sync Enabled"<< std::endl;
             else std::cout << "V-Sync Disabled"<<std::endl;
+            break;
+        case GLFW_KEY_F11: 
+            if (!fullscreen) {
+                glfwGetWindowPos(window, &windowPosX, &windowPosY);
+                glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+                GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+                const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+
+                glfwSetWindowMonitor(window, primaryMonitor, 0, 0, mode->width, mode->height, GLFW_DONT_CARE);
+            }
+            else {
+                glfwSetWindowMonitor(window, nullptr, windowPosX, windowPosY, windowWidth, windowHeight, GLFW_DONT_CARE);
+            }
+
+            fullscreen = !fullscreen;
             break;
         default:
             break;
@@ -279,7 +297,7 @@ int App::run(void) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    
     update_projection_matrix();
     glViewport(0, 0, width, height);
 
@@ -294,6 +312,8 @@ int App::run(void) {
 
         // render
         while (!glfwWindowShouldClose(window)) {
+
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             my_shader.activate();
