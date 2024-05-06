@@ -280,9 +280,12 @@ void App::init_assets(void) {
 
     Model my_model("obj/bunny_tri_vn.obj", "resources/textures/ground_texture.bmp");
     Model groundModel("obj/ground.obj", "resources/textures/grass.bmp");
-    Model houseModel("obj/house.obj", "resources/textures/tiled-stones.bmp");
+    Model houseModel("obj/fullhouse.obj", "resources/textures/tiled-stones.bmp");
     Model mocrowaveModel("obj/microwave_not_glass.obj", "resources/textures/microwave_col.bmp");
     Model mocrowaveGlassModel("obj/glass_for_microwave.obj");
+    Model greetingModel("obj/greet.obj", "resources/textures/greet.bmp");
+    Model sunModel("obj/sun.obj", "resources/textures/sun.bmp");
+
 
 
 
@@ -291,6 +294,8 @@ void App::init_assets(void) {
     scene.insert({ "house", houseModel });
     scene.insert({ "microwave", mocrowaveModel });
     scene.insert({ "glass", mocrowaveGlassModel });
+    scene.insert({ "greeting", greetingModel });
+    scene.insert({ "sun", sunModel });
 }
 
 int App::run(void) {
@@ -374,10 +379,30 @@ int App::run(void) {
             glm::mat4 modelGlass = glm::mat4(1.0f); // Start with an identity matrix
             modelGlass = glm::translate(modelGlass, glm::vec3(-380.0f, 5.0f, -400.0f));
             modelGlass = glm::rotate(modelGlass, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
-            // Rotate 90 degrees around the Z axis
             modelGlass = glm::scale(modelGlass, glm::vec3(20.0f, 20.0f, 20.0f));
             my_shader.setUniform("uM_m", modelGlass);
             scene["glass"].Draw(my_shader);
+
+            // Draw Greeting
+            my_shader.setUniform("transparency", 1.0f);
+            glm::mat4 modelGreeting = glm::mat4(1.0f); // Start with an identity matrix
+            modelGreeting = glm::scale(modelGreeting, glm::vec3(6.0f, 6.0f, 6.0f));
+            modelGreeting = glm::rotate(modelGreeting, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            modelGreeting = glm::translate(modelGreeting, glm::vec3(-55.0f, 68.0f, 0.0f));
+            my_shader.setUniform("uM_m", modelGreeting);
+            scene["greeting"].Draw(my_shader);
+
+            // Draw Sun
+            my_shader.setUniform("transparency", 1.0f);
+            glm::mat4 modelSun = glm::mat4(1.0f); // Start with an identity matrix
+            modelSun = glm::translate(modelSun, glm::vec3(1200.0f, 550.0f, -1400.0f));
+            modelSun = glm::rotate(modelSun, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
+            modelSun = glm::scale(modelSun, glm::vec3(20.0f, 20.0f, 20.0f));
+            modelSun = glm::rotate(modelSun, glm::radians(angle * 10), glm::vec3(0.0f, 0.0f, 1.0f));
+            my_shader.setUniform("uM_m", modelSun);
+            scene["sun"].Draw(my_shader);
+
+
             
             // Draw all models in the scene
             /*for (auto& [key, model] : scene) {
