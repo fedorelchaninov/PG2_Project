@@ -1,0 +1,43 @@
+# Vertex positions
+v -50.0 0.0 -50.0  # 1
+v 50.0 0.0 -50.0   # 2
+v 50.0 0.0 50.0    # 3
+v -50.0 0.0 50.0   # 4
+v -50.0 50.0 -50.0 # 5
+v 50.0 50.0 -50.0  # 6
+v 50.0 50.0 50.0   # 7
+v -50.0 50.0 50.0  # 8
+
+# Texture coordinates
+vt 0.0 0.0
+vt 1.0 0.0
+vt 1.0 1.0
+vt 0.0 1.0
+
+# Vertex normals
+vn 0.0 1.0 0.0     # Up
+vn 0.0 -1.0 0.0    # Down
+vn 0.0 0.0 1.0     # Front
+vn 1.0 0.0 0.0     # Right
+vn -1.0 0.0 0.0    # Left
+
+# Faces with positions, texture coordinates, and normals
+# Front wall
+f 1/1/3 2/2/3 6/3/3
+f 1/1/3 6/3/3 5/4/3
+
+# Right wall
+f 2/2/4 3/3/4 7/4/4
+f 2/2/4 7/4/4 6/3/4
+
+# Left wall
+f 4/1/5 1/2/5 5/3/5
+f 4/1/5 5/3/5 8/4/5
+
+# Ceiling
+f 5/1/1 6/2/1 7/3/1
+f 5/1/1 7/3/1 8/4/1
+
+# Floor
+f 1/1/2 2/2/2 3/3/2
+f 1/1/2 3/3/2 4/4/2
