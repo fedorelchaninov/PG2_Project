@@ -23,7 +23,6 @@
 
 bool vsyncEnabled = false;
 ShaderProgram my_shader;
-ShaderProgram sun_shader;
 
 void App::update_projection_matrix(void)
 {
@@ -271,9 +270,6 @@ void App::init_assets(void) {
     scene.insert({ "ground", groundModel });
     scene.insert({ "house", houseModel });
     scene.insert({ "microwave", mocrowaveModel });
-
-    
-
 }
 
 int App::run(void) {
@@ -316,7 +312,7 @@ int App::run(void) {
 
             // Draw Bunny
             glm::mat4 modelBunny = glm::mat4(1.0f);
-            modelBunny = glm::translate(modelBunny, glm::vec3(0.0f, 0.0f, 0.0f));
+            modelBunny = glm::translate(modelBunny, glm::vec3(-380.0f, 15.0f, -390.0f));
             modelBunny = glm::rotate(modelBunny, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             modelBunny = glm::rotate(modelBunny, glm::radians(angle * 50), glm::vec3(0.0f, 0.0f, 1.0f));
             modelBunny = glm::scale(modelBunny, glm::vec3(0.5f, 0.5f, 0.5f));
@@ -347,18 +343,18 @@ int App::run(void) {
             glm::mat4 modelHouse = glm::mat4(1.0f); // Start with an identity matrix
             modelHouse = glm::translate(modelHouse, glm::vec3(-330.0f, 0.0f, -400.0f));
             modelHouse = glm::rotate(modelHouse, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
-            modelHouse = glm::scale(modelHouse, glm::vec3(5.0f, 5.0f, 5.0f)); // Scale the model up by a factor of 5
+            modelHouse = glm::scale(modelHouse, glm::vec3(6.0f, 6.0f, 6.0f)); // Scale the model up by a factor of 5
             my_shader.setUniform("uM_m", modelHouse);
             scene["house"].Draw(my_shader);
             
 
             // Draw Microwave
             glm::mat4 modelMicrowave = glm::mat4(1.0f); // Start with an identity matrix
-            modelMicrowave = glm::translate(modelMicrowave, glm::vec3(300.0f, 5.0f, 0.0f));
+            modelMicrowave = glm::translate(modelMicrowave, glm::vec3(-380.0f, 5.0f, -400.0f));
             modelMicrowave = glm::rotate(modelMicrowave, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
             // Rotate 90 degrees around the Z axis
-            modelMicrowave = glm::rotate(modelMicrowave, glm::radians(270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-            modelMicrowave = glm::scale(modelMicrowave, glm::vec3(30.0f, 30.0f, 30.0f));
+            modelMicrowave = glm::rotate(modelMicrowave, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            modelMicrowave = glm::scale(modelMicrowave, glm::vec3(20.0f, 20.0f, 20.0f));
             my_shader.setUniform("uM_m", modelMicrowave);
             scene["microwave"].Draw(my_shader);
             
