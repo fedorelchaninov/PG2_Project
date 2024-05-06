@@ -323,17 +323,6 @@ int App::run(void) {
             my_shader.setUniform("transparency", 1.0f);  // Непрозрачный
             scene["bunny"].Draw(my_shader);
 
-            // Draw Teapot
-            glm::mat4 modelTeapot = glm::mat4(1.0f);
-            modelTeapot = glm::translate(modelTeapot, glm::vec3(0.0f, -8.0f, 0.0f));
-            modelTeapot = glm::rotate(modelTeapot, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-            modelTeapot = glm::rotate(modelTeapot, glm::radians(angle * 50), glm::vec3(0.0f, 1.0f, 0.0f));
-            modelTeapot = glm::scale(modelTeapot, glm::vec3(5.5f, 5.5f, 5.5f));
-            my_shader.setUniform("uM_m", modelTeapot);
-            my_shader.setUniform("objectColor", glm::vec3(1.0f, 0.8f, 0.6f));
-            my_shader.setUniform("transparency", 0.7f);  // Прозрачность 70%
-            scene["teapot"].Draw(my_shader);
-
 
             // Draw Ground
             my_shader.setUniform("transparency", 1.0f); // Непрозрачный для земли
