@@ -18,13 +18,44 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "App.h"
-#include "ShaderProgram.h"
-
-extern App app;
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 bool vsyncEnabled = false;
+ShaderProgram my_shader;
 
-void App::scroll_callback(double xoffset, double yoffset) {
+void App::update_projection_matrix(void)
+{
+    if (height < 1)
+        height = 1;   // avoid division by 0
+
+    float ratio = static_cast<float>(width) / height;
+
+    projection_matrix = glm::perspective(
+        glm::radians(fov),   // The vertical Field of View, in radians: the amount of "zoom". Think "camera lens". Usually between 90� (extra wide) and 30� (quite zoomed in)
+        ratio,               // Aspect Ratio. Depends on the size of your window.
+        0.1f,                // Near clipping plane. Keep as big as possible, or you'll get precision issues.
+        20000.0f             // Far clipping plane. Keep as little as possible.
+    );
+}
+
+#include <vector>
+#include <cmath>
+
+std::vector<float> createCircleVertices(float centerX, float centerY, float radius, int numSegments) {
+    std::vector<float> vertices;
+    for (int i = 0; i <= numSegments; ++i) {
+        float theta = 2.0f * 3.1415926f * float(i) / float(numSegments); // текущий угол
+        float x = radius * cosf(theta); // рассчитываем x
+        float y = radius * sinf(theta); // рассчитываем y
+        vertices.push_back(x + centerX);
+        vertices.push_back(y + centerY);
+    }
+    return vertices;
+}
+
+
+void App::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     if (yoffset > 0.0) {
         std::cout << "tocis nahoru...\n";
     }
@@ -32,9 +63,15 @@ void App::scroll_callback(double xoffset, double yoffset) {
         std::cout << "tocis dolu...\n";
     }
 
+    // get App instance
+    auto this_inst = static_cast<App*>(glfwGetWindowUserPointer(window));
+    this_inst->fov += 10.0 * yoffset;
+    this_inst->fov = std::clamp(this_inst->fov, 20.0f, 170.0f); // limit FOV to reasonable values...
+
+    this_inst->update_projection_matrix();
 }
 
-void App::key_callback(int key, int scancode, int action, int mods) {
+void App::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if ((action == GLFW_PRESS) || (action == GLFW_REPEAT))
     {
         switch (key)
@@ -54,17 +91,23 @@ void App::key_callback(int key, int scancode, int action, int mods) {
     }
 }
 
-void App::error_callback(int error, const char* description) {
+void App::error_callback(GLFWwindow* window, int error, const char* description) {
     std::cerr << "GLFW Error: " << description << '\n';
 }
 
-void App::fbsize_callback(int width, int height) {
+void App::fbsize_callback(GLFWwindow* window, int width, int height) {
+    auto this_inst = static_cast<App*>(glfwGetWindowUserPointer(window));
+    this_inst->width = width;
+    this_inst->height = height;
+
+    // set viewport
     glViewport(0, 0, width, height);
+    //now your canvas has [0,0] in bottom left corner, and its size is [width x height] 
 
-
+    this_inst->update_projection_matrix();
 }
 
-void App::cursor_position_callback(double xpos, double ypos) {
+void App::cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     static bool firstMouse = true;
     static double lastX, lastY;
 
@@ -79,9 +122,13 @@ void App::cursor_position_callback(double xpos, double ypos) {
 
     lastX = xpos;
     lastY = ypos;
+
+    // get App instance
+    auto this_inst = static_cast<App*>(glfwGetWindowUserPointer(window));
+    this_inst->camera.ProcessMouseMovement(static_cast<float>(xoffset), static_cast<float>(yoffset));
 }
 
-void App::mouse_button_callback(int button, int action, int mods) {
+void App::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         std::cout << "Left mouse button pressed" << std::endl;
     }
@@ -96,7 +143,7 @@ void App::mouse_button_callback(int button, int action, int mods) {
     }
 }
 
-void GLAPIENTRY App::MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+void GLAPIENTRY App::MessageCallback(GLFWwindow* window, GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
     auto const src_str = [source]() {
         switch (source)
@@ -140,35 +187,8 @@ void GLAPIENTRY App::MessageCallback(GLenum source, GLenum type, GLuint id, GLen
                     ", message = '" << message << '\'' << std::endl;
 }
 
-void key_callback_tr(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    app.key_callback(key, scancode, action, mods); // Correctly delegates to an instance method
-}
 
-void scroll_callback_tr(GLFWwindow* window, double xoffset, double yoffset) {
-    app.scroll_callback(xoffset, yoffset);
-}
-
-void mouse_button_callback_tr(GLFWwindow* window, int button, int action, int mods) {
-    app.mouse_button_callback(button, action, mods);
-}
-
-void cursor_position_callback_tr(GLFWwindow* window, double xpos, double ypos) {
-    app.cursor_position_callback(xpos, ypos);
-}
-
-void fbsize_callback_tr(GLFWwindow* window, int width, int height) {
-    app.fbsize_callback(width, height);
-};
-
-void error_callback_tr(int error, const char* description) {
-    app.error_callback(error, description);
-}
-
-void GLAPIENTRY MessageCallback_tr(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-    app.MessageCallback(source, type, id, severity, length, message, userParam);
-}
-
-App::App()
+App::App() : camera(glm::vec3(0.0f, 0.0f, 3.0f))
 {
     // default constructor
     // nothing to do here (so far...)
@@ -215,15 +235,17 @@ bool App::init()
             const char* lan_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
             std::cout << "LANGUAGE_VERSION is: " << lan_version << '\n';
 
-            glfwSetKeyCallback(window, key_callback_tr);
-            glfwSetFramebufferSizeCallback(window, fbsize_callback_tr);			// On window resize callback.
-            glfwSetMouseButtonCallback(window, mouse_button_callback_tr);
-            glfwSetCursorPosCallback(window, cursor_position_callback_tr);
-            glfwSetScrollCallback(window, scroll_callback_tr);
+            glfwSetWindowUserPointer(window, this);
+            glfwSetKeyCallback(window, key_callback);
+            glfwSetFramebufferSizeCallback(window, fbsize_callback);			// On window resize callback.
+            glfwSetMouseButtonCallback(window, mouse_button_callback);
+            glfwSetCursorPosCallback(window, cursor_position_callback);
+            glfwSetScrollCallback(window, scroll_callback);
             glfwSwapInterval(vsyncEnabled ? 1 : 0);
 
-            
-            ShaderProgram my_shader = ShaderProgram("resources/shaders/basic.vert", "resources/shaders/basic.frag");
+           
+            init_assets();
+
         }
     }
     catch (std::exception const& e) {
@@ -234,72 +256,135 @@ bool App::init()
     return true;
 }
 
-int App::run(void)
-{
+void App::init_assets(void) {
+    my_shader = ShaderProgram("resources/shaders/basic.vert", "resources/shaders/basic.frag");
+
+
+    Model my_model("obj/bunny_tri_vn.obj", "resources/textures/ground_texture.bmp");
+    Model groundModel("obj/ground.obj", "resources/textures/grass.bmp");
+    Model houseModel("obj/house.obj", "resources/textures/tiled-stones.bmp");
+    Model mocrowaveModel("obj/microwave_bi.obj", "resources/textures/microwave_col.bmp");
+
+
+    scene.insert({ "bunny", my_model });
+    scene.insert({ "ground", groundModel });
+    scene.insert({ "house", houseModel });
+    scene.insert({ "microwave", mocrowaveModel });
+}
+
+int App::run(void) {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    update_projection_matrix();
+    glViewport(0, 0, width, height);
+
+    glClearColor(0.7f, 0.9f, 1.0f, 1.0f); // Светлый цвет неба
+    
+
     try {
-        // app code
-        //...
-        while (!glfwWindowShouldClose(window))
-        {
-            auto start = std::chrono::steady_clock::now();
-
-            // Creating variables for FPS calculation
-            auto startTime = std::chrono::steady_clock::now();
-            std::chrono::steady_clock::time_point lastTime = startTime;
-            int frameCount = 0;
-
-            // clear canvas
-            while (!glfwWindowShouldClose(window)) {
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        double lastTime = glfwGetTime();
+        camera.Position = glm::vec3(0, 50, 100); // Устанавливаем камеру выше земли
+        int frameCount = 0;
 
 
+        // render
+        while (!glfwWindowShouldClose(window)) {
 
-                // poll events, call callbacks, flip back<->front buffer
-                glfwPollEvents();
-                glfwSwapBuffers(window);
-                // FPS calculation
-                frameCount++;
-                std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
-                std::chrono::duration<double> elapsedTime = currentTime - lastTime;
-                if (elapsedTime.count() >= 1.0) {
-                    double fps = static_cast<double>(frameCount) / elapsedTime.count();
-                    std::cout << "FPS: " << fps << std::endl;
-                    frameCount = 0;
-                    lastTime = currentTime;
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            my_shader.activate();
 
-                }
-            }
-            auto end = std::chrono::steady_clock::now();
+            double currentTime = glfwGetTime();
+            double delta_t = currentTime - lastTime; // Correct delta time calculation
+            camera.ProcessInput(window, delta_t); // Process keyboard and mouse input
+            glm::mat4 view_matrix = camera.GetViewMatrix(); // Use camera's view matrix
+            float angle = static_cast<float>(currentTime); // Rotation angle depends on time
+            glm::vec3 cameraFront = camera.Position + camera.Front;
 
-            std::chrono::duration<double> elapsed_seconds = end - start;
-            std::cout << "elapsed time: " << elapsed_seconds.count() << "sec" << std::endl;
+            // Set shader uniforms
+            my_shader.setUniform("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            glm::vec3 lightPos = camera.Position + camera.Front * 10.0f;
+            my_shader.setUniform("lightPos", lightPos);
+            my_shader.setUniform("uP_m", projection_matrix);
+            my_shader.setUniform("uV_m", view_matrix);
+           
+
+            // Draw Bunny
+            glm::mat4 modelBunny = glm::mat4(1.0f);
+            modelBunny = glm::translate(modelBunny, glm::vec3(-380.0f, 15.0f, -390.0f));
+            modelBunny = glm::rotate(modelBunny, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            modelBunny = glm::rotate(modelBunny, glm::radians(angle * 50), glm::vec3(0.0f, 0.0f, 1.0f));
+            modelBunny = glm::scale(modelBunny, glm::vec3(0.5f, 0.5f, 0.5f));
+            my_shader.setUniform("uM_m", modelBunny);
+            my_shader.setUniform("transparency", 1.0f);  // Непрозрачный
+            scene["bunny"].Draw(my_shader);
+
+            // Draw Teapot
+            glm::mat4 modelTeapot = glm::mat4(1.0f);
+            modelTeapot = glm::translate(modelTeapot, glm::vec3(0.0f, -8.0f, 0.0f));
+            modelTeapot = glm::rotate(modelTeapot, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            modelTeapot = glm::rotate(modelTeapot, glm::radians(angle * 50), glm::vec3(0.0f, 1.0f, 0.0f));
+            modelTeapot = glm::scale(modelTeapot, glm::vec3(5.5f, 5.5f, 5.5f));
+            my_shader.setUniform("uM_m", modelTeapot);
+            my_shader.setUniform("objectColor", glm::vec3(1.0f, 0.8f, 0.6f));
+            my_shader.setUniform("transparency", 0.7f);  // Прозрачность 70%
+            scene["teapot"].Draw(my_shader);
+
+
+            // Draw Ground
+            my_shader.setUniform("transparency", 1.0f); // Непрозрачный для земли
+            glm::mat4 modelGround = glm::mat4(1.0f);
+            my_shader.setUniform("uM_m", modelGround);
+            scene["ground"].Draw(my_shader);
+
+
+            // Draw House
+            glm::mat4 modelHouse = glm::mat4(1.0f); // Start with an identity matrix
+            modelHouse = glm::translate(modelHouse, glm::vec3(-330.0f, 0.0f, -400.0f));
+            modelHouse = glm::rotate(modelHouse, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
+            modelHouse = glm::scale(modelHouse, glm::vec3(6.0f, 6.0f, 6.0f)); // Scale the model up by a factor of 5
+            my_shader.setUniform("uM_m", modelHouse);
+            scene["house"].Draw(my_shader);
             
 
-            // ... do_something();
-            // 
-            // if (condition)
-            //   glfwSetWindowShouldClose(window, GLFW_TRUE);
-            // 
+            // Draw Microwave
+            glm::mat4 modelMicrowave = glm::mat4(1.0f); // Start with an identity matrix
+            modelMicrowave = glm::translate(modelMicrowave, glm::vec3(-380.0f, 5.0f, -400.0f));
+            modelMicrowave = glm::rotate(modelMicrowave, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
+            // Rotate 90 degrees around the Z axis
+            modelMicrowave = glm::rotate(modelMicrowave, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            modelMicrowave = glm::scale(modelMicrowave, glm::vec3(20.0f, 20.0f, 20.0f));
+            my_shader.setUniform("uM_m", modelMicrowave);
+            scene["microwave"].Draw(my_shader);
+            
+            // Draw all models in the scene
+            /*for (auto& [key, model] : scene) {
+                model.Draw(my_shader);
+            }*/
 
-            // Clear OpenGL canvas, both color buffer and Z-buffer
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            // Swap front and back buffers
             glfwSwapBuffers(window);
-
-            // Poll for and process events
             glfwPollEvents();
+
+            // FPS count
+            frameCount++;
+            if (currentTime - lastTime >= 1.0) {
+                std::cout << "FPS: " << frameCount << std::endl;
+                frameCount = 0;
+                lastTime += 1.0;
+            }
         }
     }
     catch (std::exception const& e) {
-        std::cerr << "App failed : " << e.what() << std::endl;
+        std::cerr << "App failed: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 
-    std::cout << "Finished OK...\n";
+    std::cout << "Finished OK.\n";
     return EXIT_SUCCESS;
 }
 
+    
 App::~App()
 {
     // clean-up
