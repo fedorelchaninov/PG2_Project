@@ -26,6 +26,8 @@ public:
     static void GLAPIENTRY MessageCallback(GLFWwindow* window, GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
     ShaderProgram sky_shader;  // Shader for rendering the sky
 
+    void updateSunPosition();
+   
 
     App();
 

@@ -26,6 +26,9 @@ bool fullscreen = false;
 int windowPosX, windowPosY, windowWidth, windowHeight;
 ShaderProgram my_shader;
 
+float sunAngle = 0.0f; 
+glm::vec3 sunPosition = glm::vec3(1200.0f, 850.0f, -1400.0f);
+
 void App::update_projection_matrix(void)
 {
     if (height < 1)
@@ -213,6 +216,20 @@ App::App() : camera(glm::vec3(0.0f, 0.0f, 3.0f))
     std::cout << "Constructed...\n";
 }
 
+void App::updateSunPosition() {
+    float radius = 1500.0f; // радиус траектории солнца
+    float height = 850.0f;  // высота солнца над горизонтом
+    sunAngle += 0.0002f; // изменение угла для анимации движения солнца
+
+    // Вычисляем позицию солнца по круговой траектории
+    sunPosition.x = radius * cos(sunAngle);
+    sunPosition.z = radius * sin(sunAngle);
+    sunPosition.y = height;
+
+    // Обновление позиции и цвета света в шейдере
+    my_shader.setUniform("sunLightPos", sunPosition);
+}
+
 bool App::init()
 {
     try {
@@ -330,6 +347,9 @@ int App::run(void) {
             float angle = static_cast<float>(currentTime); // Rotation angle depends on time
             glm::vec3 cameraFront = camera.Position + camera.Front;
 
+
+            updateSunPosition();
+
             // Set shader uniforms
             my_shader.setUniform("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
             glm::vec3 lightPos = camera.Position + camera.Front * 10.0f;
@@ -337,7 +357,7 @@ int App::run(void) {
             my_shader.setUniform("uP_m", projection_matrix);
             my_shader.setUniform("uV_m", view_matrix);
 
-            glm::vec3 sunPosition = glm::vec3(1200.0f, 850.0f, -1400.0f);
+            
             glm::vec3 sunLightColor = glm::vec3(1.0f, 0.9f, 0.8f); // Цвет света, близкий к цвету солнечного света
             float sunLightIntensity = 0.8f; // Увеличенная интенсивность для симуляции яркости солнца
             my_shader.setUniform("sunLightColor", sunLightColor);
