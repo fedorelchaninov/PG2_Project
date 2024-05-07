@@ -336,7 +336,13 @@ int App::run(void) {
             my_shader.setUniform("lightPos", lightPos);
             my_shader.setUniform("uP_m", projection_matrix);
             my_shader.setUniform("uV_m", view_matrix);
-           
+
+            glm::vec3 sunPosition = glm::vec3(1200.0f, 850.0f, -1400.0f);
+            glm::vec3 sunLightColor = glm::vec3(1.0f, 0.9f, 0.8f); // Цвет света, близкий к цвету солнечного света
+            float sunLightIntensity = 0.8f; // Увеличенная интенсивность для симуляции яркости солнца
+            my_shader.setUniform("sunLightColor", sunLightColor);
+            my_shader.setUniform("sunLightPos", sunPosition);
+            my_shader.setUniform("sunLightIntensity", sunLightIntensity);
 
             // Draw Bunny
             glm::mat4 modelBunny = glm::mat4(1.0f);
@@ -395,7 +401,7 @@ int App::run(void) {
             // Draw Sun
             my_shader.setUniform("transparency", 1.0f);
             glm::mat4 modelSun = glm::mat4(1.0f); // Start with an identity matrix
-            modelSun = glm::translate(modelSun, glm::vec3(1200.0f, 550.0f, -1400.0f));
+            modelSun = glm::translate(modelSun, sunPosition);
             modelSun = glm::rotate(modelSun, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
             modelSun = glm::scale(modelSun, glm::vec3(20.0f, 20.0f, 20.0f));
             modelSun = glm::rotate(modelSun, glm::radians(angle * 10), glm::vec3(0.0f, 0.0f, 1.0f));
