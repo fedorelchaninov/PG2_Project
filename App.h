@@ -10,7 +10,7 @@
 
 class App {
 public:
-    unsigned int microwaveTextureID;  // Texture ID for the microwave
+    unsigned int microwaveTextureID;
 
     Camera camera;
 
@@ -24,7 +24,7 @@ public:
     static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
     static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
     static void GLAPIENTRY MessageCallback(GLFWwindow* window, GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
-    ShaderProgram sky_shader;  // Shader for rendering the sky
+    ShaderProgram sky_shader;
 
     void updateSunPosition();
    

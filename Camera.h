@@ -11,7 +11,7 @@ class Camera
 {
 public:
 
-    // Camera Attributes
+    // cam attr
     glm::vec3 Position;
     glm::vec3 Front;
     glm::vec3 Right;
@@ -22,7 +22,7 @@ public:
     GLfloat Pitch = 0.0f;;
     GLfloat Roll = 0.0f;
 
-    // Camera options
+    // cam options
     GLfloat MovementSpeed = 0.50f;
     GLfloat MouseSensitivity = 0.5f;
 

@@ -18,12 +18,11 @@ struct Material {
     float shininess;
     GLuint diffuseTexture;
 
-    // Additional properties based on MTL file specification
-    float opticalDensity;  // Ni in MTL
-    float transparency;    // d in MTL (often 1 - d is used for transparency in graphics)
-    int illumModel;        // illumination model
+    // additional properties based on MTL file specification
+    float opticalDensity;
+    float transparency;
+    int illumModel;
 
-    // Default Constructor with initializers for new members
     Material() : shininess(0.0f), diffuseTexture(0),
         opticalDensity(1.0f), transparency(1.0f), illumModel(1) {}
 };
@@ -43,11 +42,11 @@ public:
 
 private:
     std::vector<Mesh> meshes;
-    std::string directory; // Для хранения пути к каталогу модели
-    std::unordered_map<std::string, GLuint> loadedTextures; // Кэш загруженных текстур
+    std::string directory;
+    std::unordered_map<std::string, GLuint> loadedTextures;
 
-    void LoadOBJFile(const std::filesystem::path& filename, GLuint textureId); //TODO: modify
-    void LoadMTLFile(const std::filesystem::path& filename); //TODO: implement
+    void LoadOBJFile(const std::filesystem::path& filename, GLuint textureId); 
+    void LoadMTLFile(const std::filesystem::path& filename);
 
     GLuint LoadTexture(const std::filesystem::path& filepath);
     std::unordered_map<std::string, Material> materials;

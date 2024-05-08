@@ -150,7 +150,7 @@ GLuint ShaderProgram::link_shader(const std::vector<GLuint> shader_ids)
 			glAttachShader(prog_h, id);
 		}
 		glLinkProgram(prog_h);
-		{ // check link result, display error (if any)
+		{
 			GLint status;
 			glGetProgramiv(prog_h, GL_LINK_STATUS, &status);
 			if (status == GL_FALSE) {

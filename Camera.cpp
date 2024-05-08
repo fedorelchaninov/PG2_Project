@@ -23,9 +23,9 @@ glm::vec3 Camera::ProcessInput(GLFWwindow* window, GLfloat deltaTime)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         direction += Right;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        direction += WorldUp; // Assuming SPACE for upward movement
+        direction += WorldUp;
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        direction -= WorldUp; // Assuming CTRL for downward movement
+        direction -= WorldUp;
 
     if (glm::length(direction) != 0) {
         glm::vec3 newPosition = Position + glm::normalize(direction) * MovementSpeed * deltaTime;
@@ -40,13 +40,12 @@ glm::vec3 Camera::ProcessInput(GLFWwindow* window, GLfloat deltaTime)
 }
 
 bool Camera::checkCollision(const glm::vec3& newPos) {
-    glm::vec3 teapotPosition = glm::vec3(0.0f, -8.0f, 0.0f); // Актуальная позиция чайника
-    float teapotRadius = 10.5f; // Предположим радиус, соответствующий масштабированному размеру
+    glm::vec3 teapotPosition = glm::vec3(0.0f, -8.0f, 0.0f); 
+    float teapotRadius = 10.5f;
 
     float distance = glm::length(newPos - teapotPosition);
-    bool collision = distance < (teapotRadius + MovementSpeed); // Учет скорости движения для предотвращения проникновения
+    bool collision = distance < (teapotRadius + MovementSpeed);
 
-    // Логирование для отладки
     /*std::cout << "Checking collision: newPos (" << newPos.x << ", " << newPos.y << ", " << newPos.z
         << ") teapotPos (" << teapotPosition.x << ", " << teapotPosition.y << ", " << teapotPosition.z
         << ") distance: " << distance << " collision: " << (collision ? "yes" : "no") << std::endl;*/

@@ -71,7 +71,7 @@ void App::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     // get App instance
     auto this_inst = static_cast<App*>(glfwGetWindowUserPointer(window));
     this_inst->fov += 10.0 * yoffset;
-    this_inst->fov = std::clamp(this_inst->fov, 20.0f, 170.0f); // limit FOV to reasonable values...
+    this_inst->fov = std::clamp(this_inst->fov, 20.0f, 170.0f); // limited FOV 
 
     this_inst->update_projection_matrix();
 }
@@ -121,9 +121,7 @@ void App::fbsize_callback(GLFWwindow* window, int width, int height) {
     this_inst->width = width;
     this_inst->height = height;
 
-    // set viewport
     glViewport(0, 0, width, height);
-    //now your canvas has [0,0] in bottom left corner, and its size is [width x height] 
 
     this_inst->update_projection_matrix();
 }
@@ -144,7 +142,6 @@ void App::cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
-    // get App instance
     auto this_inst = static_cast<App*>(glfwGetWindowUserPointer(window));
     this_inst->camera.ProcessMouseMovement(static_cast<float>(xoffset), static_cast<float>(yoffset));
 }
@@ -217,16 +214,16 @@ App::App() : camera(glm::vec3(0.0f, 0.0f, 3.0f))
 }
 
 void App::updateSunPosition() {
-    float radius = 1500.0f; // радиус траектории солнца
-    float height = 850.0f;  // высота солнца над горизонтом
-    sunAngle += 0.0002f; // изменение угла для анимации движения солнца
+    float radius = 1500.0f; // sun radius
+    float height = 850.0f;  // sun altitude
+    sunAngle += 0.0002f; // angle for sun motion
 
-    // Вычисляем позицию солнца по круговой траектории
+    // calc pos of the sun on a circular traject
     sunPosition.x = radius * cos(sunAngle);
     sunPosition.z = radius * sin(sunAngle);
     sunPosition.y = height;
 
-    // Обновление позиции и цвета света в шейдере
+    // upd pos and color of the light in shader
     my_shader.setUniform("sunLightPos", sunPosition);
 }
 
@@ -323,12 +320,12 @@ int App::run(void) {
     update_projection_matrix();
     glViewport(0, 0, width, height);
 
-    glClearColor(0.7f, 0.9f, 1.0f, 1.0f); // Светлый цвет неба
+    glClearColor(0.7f, 0.9f, 1.0f, 1.0f); // sky color
     
 
     try {
         double lastTime = glfwGetTime();
-        camera.Position = glm::vec3(0, 50, 100); // Устанавливаем камеру выше земли
+        camera.Position = glm::vec3(0, 50, 100); // set camera above the ground
         int frameCount = 0;
 
 
@@ -341,16 +338,15 @@ int App::run(void) {
             my_shader.activate();
 
             double currentTime = glfwGetTime();
-            double delta_t = currentTime - lastTime; // Correct delta time calculation
-            camera.ProcessInput(window, delta_t); // Process keyboard and mouse input
-            glm::mat4 view_matrix = camera.GetViewMatrix(); // Use camera's view matrix
-            float angle = static_cast<float>(currentTime); // Rotation angle depends on time
+            double delta_t = currentTime - lastTime; // delta time 
+            camera.ProcessInput(window, delta_t);
+            glm::mat4 view_matrix = camera.GetViewMatrix();
+            float angle = static_cast<float>(currentTime); // make rotation angle depend on time!!!!
             glm::vec3 cameraFront = camera.Position + camera.Front;
 
 
             updateSunPosition();
 
-            // Set shader uniforms
             my_shader.setUniform("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
             glm::vec3 lightPos = camera.Position + camera.Front * 10.0f;
             my_shader.setUniform("lightPos", lightPos);
@@ -358,82 +354,68 @@ int App::run(void) {
             my_shader.setUniform("uV_m", view_matrix);
 
             
-            glm::vec3 sunLightColor = glm::vec3(1.0f, 0.9f, 0.8f); // Цвет света, близкий к цвету солнечного света
-            float sunLightIntensity = 0.8f; // Увеличенная интенсивность для симуляции яркости солнца
+            glm::vec3 sunLightColor = glm::vec3(1.0f, 0.9f, 0.8f);
+            float sunLightIntensity = 0.8f; // sun brightness intense
             my_shader.setUniform("sunLightColor", sunLightColor);
             my_shader.setUniform("sunLightPos", sunPosition);
             my_shader.setUniform("sunLightIntensity", sunLightIntensity);
 
-            // Draw Bunny
             glm::mat4 modelBunny = glm::mat4(1.0f);
             modelBunny = glm::translate(modelBunny, glm::vec3(-375.0f, 13.0f, -392.0f));
             modelBunny = glm::rotate(modelBunny, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             modelBunny = glm::rotate(modelBunny, glm::radians(angle * 50), glm::vec3(0.0f, 0.0f, 1.0f));
             modelBunny = glm::scale(modelBunny, glm::vec3(0.5f, 0.5f, 0.5f));
             my_shader.setUniform("uM_m", modelBunny);
-            my_shader.setUniform("transparency", 1.0f);  // Непрозрачный
+            my_shader.setUniform("transparency", 1.0f);
             scene["bunny"].Draw(my_shader);
 
 
-            // Draw Ground
-            my_shader.setUniform("transparency", 1.0f); // Непрозрачный для земли
+            my_shader.setUniform("transparency", 1.0f);
             glm::mat4 modelGround = glm::mat4(1.0f);
             my_shader.setUniform("uM_m", modelGround);
             scene["ground"].Draw(my_shader);
 
 
-            // Draw House
-            glm::mat4 modelHouse = glm::mat4(1.0f); // Start with an identity matrix
+            glm::mat4 modelHouse = glm::mat4(1.0f);
             modelHouse = glm::translate(modelHouse, glm::vec3(-330.0f, -2.0f, -400.0f));
-            modelHouse = glm::rotate(modelHouse, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
-            modelHouse = glm::scale(modelHouse, glm::vec3(6.0f, 6.0f, 6.0f)); // Scale the model up by a factor of 5
+            modelHouse = glm::rotate(modelHouse, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            modelHouse = glm::scale(modelHouse, glm::vec3(6.0f, 6.0f, 6.0f));
             my_shader.setUniform("uM_m", modelHouse);
             scene["house"].Draw(my_shader);
             
 
-            // Draw Microwave
-            glm::mat4 modelMicrowave = glm::mat4(1.0f); // Start with an identity matrix
+            glm::mat4 modelMicrowave = glm::mat4(1.0f);
             modelMicrowave = glm::translate(modelMicrowave, glm::vec3(-380.0f, 5.0f, -400.0f));
-            modelMicrowave = glm::rotate(modelMicrowave, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
-            // Rotate 90 degrees around the Z axis
+            modelMicrowave = glm::rotate(modelMicrowave, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             modelMicrowave = glm::scale(modelMicrowave, glm::vec3(20.0f, 20.0f, 20.0f));
             my_shader.setUniform("uM_m", modelMicrowave);
             scene["microwave"].Draw(my_shader);
 
-            // Draw Glass
             my_shader.setUniform("transparency", 0.5f);
-            glm::mat4 modelGlass = glm::mat4(1.0f); // Start with an identity matrix
+            glm::mat4 modelGlass = glm::mat4(1.0f);
             modelGlass = glm::translate(modelGlass, glm::vec3(-380.0f, 5.0f, -400.0f));
-            modelGlass = glm::rotate(modelGlass, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
+            modelGlass = glm::rotate(modelGlass, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             modelGlass = glm::scale(modelGlass, glm::vec3(20.0f, 20.0f, 20.0f));
             my_shader.setUniform("uM_m", modelGlass);
             scene["glass"].Draw(my_shader);
 
-            // Draw Greeting
             my_shader.setUniform("transparency", 1.0f);
-            glm::mat4 modelGreeting = glm::mat4(1.0f); // Start with an identity matrix
+            glm::mat4 modelGreeting = glm::mat4(1.0f);
             modelGreeting = glm::scale(modelGreeting, glm::vec3(6.0f, 6.0f, 6.0f));
             modelGreeting = glm::rotate(modelGreeting, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             modelGreeting = glm::translate(modelGreeting, glm::vec3(-55.0f, 68.0f, 0.0f));
             my_shader.setUniform("uM_m", modelGreeting);
             scene["greeting"].Draw(my_shader);
 
-            // Draw Sun
+
             my_shader.setUniform("transparency", 1.0f);
-            glm::mat4 modelSun = glm::mat4(1.0f); // Start with an identity matrix
+            glm::mat4 modelSun = glm::mat4(1.0f);
             modelSun = glm::translate(modelSun, sunPosition);
-            modelSun = glm::rotate(modelSun, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate 90 degrees around the Y axis
+            modelSun = glm::rotate(modelSun, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             modelSun = glm::scale(modelSun, glm::vec3(20.0f, 20.0f, 20.0f));
             modelSun = glm::rotate(modelSun, glm::radians(angle * 10), glm::vec3(0.0f, 0.0f, 1.0f));
             my_shader.setUniform("uM_m", modelSun);
             scene["sun"].Draw(my_shader);
-
-
-            
-            // Draw all models in the scene
-            /*for (auto& [key, model] : scene) {
-                model.Draw(my_shader);
-            }*/
 
             glfwSwapBuffers(window);
             glfwPollEvents();

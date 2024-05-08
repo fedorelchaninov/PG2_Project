@@ -23,7 +23,7 @@ void main() {
     vec3 diffuse = 0.5 * diff * lightColor;
 
     float sunDiff = max(dot(norm, sunDir), 0.0);
-    vec3 sunDiffuse = sunLightIntensity * sunDiff * sunLightColor; // ѕр€мой расчет солнечного света без затухани€
+    vec3 sunDiffuse = sunLightIntensity * sunDiff * sunLightColor; // calc of sunlight without fading
 
     vec3 ambient = 0.4 * lightColor;
 

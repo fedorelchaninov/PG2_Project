@@ -19,17 +19,16 @@ extern std::unordered_map<std::string, Material> materials;
     // TODO: call LoadOBJFile, LoadMTLFile, process data, create mesh and set its properties 
 
 Model::Model(const std::filesystem::path& filename) {
-    // Checking if the specified file exists
+    // checking if the specified file exists
     if (!std::filesystem::exists(filename)) {
         throw std::runtime_error("Model file does not exist: " + filename.string());
     }
 
-    // Loading model
+    // loading model
     LoadOBJFile(filename, 0);
 }
 
 Model::Model(const std::filesystem::path& filename, const std::filesystem::path& texture) {
-    // Checking if the specified file exists
     if (!std::filesystem::exists(filename)) {
         throw std::runtime_error("Model file does not exist: " + filename.string());
     }
@@ -38,7 +37,6 @@ Model::Model(const std::filesystem::path& filename, const std::filesystem::path&
     }
 
     GLuint textureId = LoadTexture(texture);
-    // Loading model
     LoadOBJFile(filename, textureId);
 }
 
@@ -77,7 +75,7 @@ void Model::LoadOBJFile(const std::filesystem::path& filename, GLuint textureId)
             std::string mtlFileName;
             ss >> mtlFileName;
             mtlFilePath = std::filesystem::path(directory).append("obj").append(mtlFileName);
-            LoadMTLFile(mtlFilePath);  // Загрузка MTL файла
+            LoadMTLFile(mtlFilePath);
         }
         else if (prefix == "v") {
             glm::vec3 position;
@@ -196,7 +194,6 @@ void Model::LoadMTLFile(const std::filesystem::path& filename) {
             stream >> illumModel;
             currentMaterial->illumModel = illumModel;
         }
-        // Handle additional keys like Ke, etc., if necessary
     }
 
     file.close();
@@ -212,13 +209,11 @@ GLuint Model::LoadTexture(const std::filesystem::path& filepath) {
     char header[54];
     file.read(header, 54);
 
-    // Проверка, что это BMP-файл
     if (header[0] != 'B' || header[1] != 'M') {
         std::cerr << "Not a BMP file: " << filepath << std::endl;
         return 0;
     }
 
-    // Чтение размеров изображения
     int dataOffset = *reinterpret_cast<int*>(&header[0x0A]);
     int width = *reinterpret_cast<int*>(&header[0x12]);
     int height = *reinterpret_cast<int*>(&header[0x16]);
@@ -228,7 +223,6 @@ GLuint Model::LoadTexture(const std::filesystem::path& filepath) {
     file.seekg(dataOffset);
     file.read(imgData.data(), imageSize);
 
-    // Генерация текстуры в OpenGL
     GLuint textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
