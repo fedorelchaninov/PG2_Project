@@ -19,12 +19,12 @@ public:
     glm::vec3 WorldUp;
 
     GLfloat Yaw = -90.0f;
-    GLfloat Pitch = 0.0f;;
+    GLfloat Pitch = 0.0f;
     GLfloat Roll = 0.0f;
 
     // cam options
-    GLfloat MovementSpeed = 0.50f;
-    GLfloat MouseSensitivity = 0.5f;
+    GLfloat MovementSpeed = 0.25f;
+    GLfloat MouseSensitivity = 0.25f;
 
     Camera(glm::vec3 position);
 

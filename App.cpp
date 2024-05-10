@@ -321,11 +321,11 @@ int App::run(void) {
     glViewport(0, 0, width, height);
 
     glClearColor(0.7f, 0.9f, 1.0f, 1.0f); // sky color
-    
+    camera.Position = glm::vec3(0, 50, 100); // set camera above the ground
 
     try {
         double lastTime = glfwGetTime();
-        camera.Position = glm::vec3(0, 50, 100); // set camera above the ground
+        
         int frameCount = 0;
 
 
@@ -422,10 +422,11 @@ int App::run(void) {
 
             // FPS count
             frameCount++;
-            if (currentTime - lastTime >= 1.0) {
+            delta_t = currentTime - lastTime;
+            if (delta_t >= 1.0) {
                 std::cout << "FPS: " << frameCount << std::endl;
                 frameCount = 0;
-                lastTime += 1.0;
+                lastTime = delta_t;
             }
         }
     }
